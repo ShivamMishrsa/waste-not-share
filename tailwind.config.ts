@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 
 export default {
@@ -61,7 +62,54 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
-				}
+				},
+				// Custom colors for our app
+				'green': {
+					50: '#f0f9f0',
+					100: '#dcefdc',
+					200: '#bfdfbf',
+					300: '#9ccf9c',
+					400: '#6db76d',
+					500: '#4CAF50', // primary green
+					600: '#3d8c40',
+					700: '#306f33',
+					800: '#29592a',
+					900: '#224a24',
+				},
+				'orange': {
+					50: '#fff8e6',
+					100: '#ffefc3',
+					200: '#ffe08a',
+					300: '#ffcb52',
+					400: '#ffb424',
+					500: '#FF9800', // warm orange
+					600: '#e67e00',
+					700: '#bf6900',
+					800: '#995400',
+					900: '#7a4500',
+				},
+				'lightgreen': {
+					50: '#f5fae8',
+					100: '#e9f5c9',
+					200: '#d7ed9c',
+					300: '#c3e36f',
+					400: '#b1db4b',
+					500: '#8BC34A', // light green accent
+					600: '#72a938',
+					700: '#5c882e',
+					800: '#476a24',
+					900: '#3b571e',
+				},
+				'cream': {
+					DEFAULT: '#F9F7F3', // soft cream background
+				},
+				'darkgray': {
+					DEFAULT: '#333333', // dark gray text
+				},
+			},
+			fontFamily: {
+				sans: ['Inter', 'sans-serif'],
+				display: ['Montserrat', 'sans-serif'],
 			},
 			borderRadius: {
 				lg: 'var(--radius)',
