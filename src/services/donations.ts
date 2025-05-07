@@ -1,6 +1,6 @@
 
 import { supabase } from '@/lib/supabase';
-import { toast } from '@/components/ui/sonner';
+import { toast } from 'sonner';
 
 export interface Donation {
   id: string;
@@ -25,10 +25,8 @@ export const getDonations = async (): Promise<Donation[]> => {
     
     if (error) {
       console.error('Error fetching donations:', error);
-      toast({
-        title: "Failed to Load Donations",
+      toast.error("Failed to Load Donations", {
         description: error.message,
-        variant: "destructive",
       });
       return [];
     }
@@ -50,10 +48,8 @@ export const getDonationById = async (id: string): Promise<Donation | null> => {
     
     if (error) {
       console.error(`Error fetching donation ${id}:`, error);
-      toast({
-        title: "Failed to Load Donation",
+      toast.error("Failed to Load Donation", {
         description: error.message,
-        variant: "destructive",
       });
       return null;
     }
@@ -81,26 +77,21 @@ export const createDonation = async (donation: Omit<Donation, 'id' | 'created_at
     
     if (error) {
       console.error('Error creating donation:', error);
-      toast({
-        title: "Failed to Create Donation",
+      toast.error("Failed to Create Donation", {
         description: error.message,
-        variant: "destructive",
       });
       return null;
     }
     
-    toast({
-      title: "Donation Created",
+    toast.success("Donation Created", {
       description: "Your donation has been listed successfully",
     });
     
     return data;
   } catch (error) {
     console.error('Error creating donation:', error);
-    toast({
-      title: "Failed to Create Donation",
+    toast.error("Failed to Create Donation", {
       description: "An unexpected error occurred",
-      variant: "destructive",
     });
     return null;
   }
@@ -120,26 +111,21 @@ export const claimDonation = async (donationId: string, charityId: string): Prom
     
     if (error) {
       console.error('Error claiming donation:', error);
-      toast({
-        title: "Failed to Claim Donation",
+      toast.error("Failed to Claim Donation", {
         description: error.message,
-        variant: "destructive",
       });
       return false;
     }
     
-    toast({
-      title: "Donation Claimed",
+    toast.success("Donation Claimed", {
       description: "You have successfully claimed this donation",
     });
     
     return true;
   } catch (error) {
     console.error('Error claiming donation:', error);
-    toast({
-      title: "Failed to Claim Donation",
+    toast.error("Failed to Claim Donation", {
       description: "An unexpected error occurred",
-      variant: "destructive",
     });
     return false;
   }

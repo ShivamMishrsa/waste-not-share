@@ -1,75 +1,78 @@
 
-import { useQuery } from "@tanstack/react-query";
-import { useParams, useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { useParams, useNavigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Soup, Clock, MapPin, User, Calendar } from "lucide-react";
-import { getDonationById, claimDonation } from "@/services/donations";
+import { Soup, Clock, MapPin, ArrowLeft } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { getDonationById, claimDonation, Donation } from "@/services/donations";
+import { toast } from "sonner";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import { useState } from "react";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { toast } from "@/components/ui/sonner";
 
 const DonationDetail = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { user, isCharity, loading } = useAuth();
+  const { user, isCharity } = useAuth();
+  const [donation, setDonation] = useState<Donation | null>(null);
+  const [loading, setLoading] = useState(true);
   const [claiming, setClaiming] = useState(false);
-  const [dialogOpen, setDialogOpen] = useState(false);
 
-  const { data: donation, isLoading, error } = useQuery({
-    queryKey: ['donation', id],
-    queryFn: () => getDonationById(id || ''),
-    enabled: !!id,
-  });
+  useEffect(() => {
+    const fetchDonation = async () => {
+      if (!id) return;
+      
+      setLoading(true);
+      const donationData = await getDonationById(id);
+      setDonation(donationData);
+      setLoading(false);
+    };
 
-  const handleClaimDonation = async () => {
-    if (!user || !isCharity) {
-      toast({
-        title: "Authentication Required",
-        description: "You need to be signed in as a charity to claim donations",
-        variant: "destructive",
+    fetchDonation();
+  }, [id]);
+
+  const handleClaim = async () => {
+    if (!user || !isCharity || !donation || !id) {
+      toast.error("Cannot Claim Donation", {
+        description: isCharity 
+          ? "Please sign in to claim this donation" 
+          : "Only charity organizations can claim donations"
       });
-      navigate("/signin");
       return;
     }
-
+    
     setClaiming(true);
-    const success = await claimDonation(id || '', user.id);
+    const success = await claimDonation(id, user.id);
     setClaiming(false);
-    setDialogOpen(false);
     
     if (success) {
       navigate("/donations");
     }
   };
 
-  if (isLoading || loading) {
+  if (loading) {
     return (
       <div className="min-h-screen flex flex-col">
         <Navbar />
-        <main className="flex-grow flex items-center justify-center">
+        <div className="flex-grow flex items-center justify-center">
           <p>Loading donation details...</p>
-        </main>
+        </div>
         <Footer />
       </div>
     );
   }
 
-  if (error || !donation) {
+  if (!donation) {
     return (
       <div className="min-h-screen flex flex-col">
         <Navbar />
-        <main className="flex-grow flex items-center justify-center">
-          <div className="text-center">
-            <p className="text-red-500 mb-4">Failed to load donation details.</p>
-            <Button variant="outline" onClick={() => navigate("/donations")}>
-              Return to Donations
-            </Button>
-          </div>
-        </main>
+        <div className="flex-grow flex flex-col items-center justify-center p-4">
+          <h1 className="text-2xl font-bold mb-4">Donation Not Found</h1>
+          <p className="text-gray-600 mb-6">The donation you're looking for doesn't exist or has been removed.</p>
+          <Button asChild>
+            <Link to="/donations">View Available Donations</Link>
+          </Button>
+        </div>
         <Footer />
       </div>
     );
@@ -78,117 +81,82 @@ const DonationDetail = () => {
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />
-      <main className="flex-grow py-12 container mx-auto">
-        <div className="max-w-4xl mx-auto px-4">
-          <Button
-            variant="outline"
-            className="mb-6"
-            onClick={() => navigate("/donations")}
-          >
-            Back to Donations
+      <main className="flex-grow py-12 px-4 container mx-auto">
+        <div className="mb-6">
+          <Button asChild variant="outline" className="mb-4">
+            <Link to="/donations" className="flex items-center gap-2">
+              <ArrowLeft className="h-4 w-4" />
+              Back to Donations
+            </Link>
           </Button>
+          <h1 className="text-3xl font-bold">{donation.name}</h1>
+          <p className="text-gray-600">{donation.restaurant}</p>
+        </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="md:col-span-2">
-              <div className="aspect-w-16 aspect-h-9 mb-6 rounded-lg overflow-hidden">
-                <img
-                  src={donation.image}
-                  alt={donation.name}
-                  className="w-full h-full object-cover"
-                />
-              </div>
-
-              <div className="space-y-6">
-                <div>
-                  <div className="flex items-center justify-between">
-                    <h1 className="text-3xl font-bold">{donation.name}</h1>
-                    <span className="bg-green-100 text-green-600 text-sm font-medium px-3 py-1 rounded-full">
-                      Available
-                    </span>
-                  </div>
-                  <p className="text-lg text-gray-600 mt-1">{donation.restaurant}</p>
-                </div>
-
-                <div className="border-t border-b py-6">
-                  <h2 className="text-xl font-semibold mb-4">Description</h2>
-                  <p className="text-gray-700">{donation.description}</p>
-                </div>
-              </div>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="lg:col-span-2">
+            <div className="rounded-lg overflow-hidden mb-6">
+              <img 
+                src={donation.image} 
+                alt={donation.name} 
+                className="w-full h-auto object-cover"
+              />
             </div>
-
-            <div className="md:col-span-1">
-              <Card>
-                <CardContent className="p-6 space-y-6">
-                  <div>
-                    <h3 className="font-semibold text-lg mb-4">Pickup Details</h3>
-                    <div className="space-y-3">
-                      <div className="flex items-center text-gray-700">
-                        <MapPin className="h-5 w-5 mr-3 text-green-600" />
-                        <span>{donation.location}</span>
-                      </div>
-                      <div className="flex items-center text-gray-700">
-                        <Clock className="h-5 w-5 mr-3 text-green-600" />
-                        <span>{donation.time_window}</span>
-                      </div>
-                      <div className="flex items-center text-gray-700">
-                        <Calendar className="h-5 w-5 mr-3 text-green-600" />
-                        <span>{new Date(donation.created_at).toLocaleDateString()}</span>
-                      </div>
-                      <div className="flex items-center text-gray-700">
-                        <User className="h-5 w-5 mr-3 text-green-600" />
-                        <span>Posted by {donation.restaurant}</span>
-                      </div>
-                    </div>
+            
+            <Card>
+              <CardContent className="p-6">
+                <h2 className="text-xl font-bold mb-4">About This Donation</h2>
+                <p className="text-gray-700 mb-6">{donation.description}</p>
+                
+                <div className="space-y-4">
+                  <div className="flex items-center text-gray-600">
+                    <MapPin className="h-5 w-5 mr-2" />
+                    <span className="font-medium">Pickup Location:</span>
+                    <span className="ml-2">{donation.location}</span>
                   </div>
-
-                  <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-                    <DialogTrigger asChild>
-                      <Button 
-                        className="w-full bg-green-600 hover:bg-green-700"
-                        disabled={!isCharity}
-                      >
-                        Claim Donation
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent>
-                      <DialogHeader>
-                        <DialogTitle>Confirm Donation Claim</DialogTitle>
-                        <DialogDescription>
-                          Are you sure you want to claim this donation? By confirming, you agree to pick up the food during the specified time window.
-                        </DialogDescription>
-                      </DialogHeader>
-                      <DialogFooter>
-                        <Button variant="outline" onClick={() => setDialogOpen(false)}>
-                          Cancel
-                        </Button>
-                        <Button 
-                          className="bg-green-600 hover:bg-green-700"
-                          onClick={handleClaimDonation}
-                          disabled={claiming}
-                        >
-                          {claiming ? "Claiming..." : "Confirm Claim"}
-                        </Button>
-                      </DialogFooter>
-                    </DialogContent>
-                  </Dialog>
-                  
-                  {!isCharity && (
-                    <p className="text-sm text-gray-500 text-center">
-                      Only registered charities can claim donations.{" "}
-                      {!user && (
-                        <Button 
-                          variant="link" 
-                          className="p-0 h-auto text-green-600" 
-                          onClick={() => navigate("/signin")}
-                        >
-                          Sign in
-                        </Button>
-                      )}
-                    </p>
-                  )}
-                </CardContent>
-              </Card>
-            </div>
+                  <div className="flex items-center text-gray-600">
+                    <Clock className="h-5 w-5 mr-2" />
+                    <span className="font-medium">Pickup Window:</span>
+                    <span className="ml-2">{donation.time_window}</span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+          
+          <div>
+            <Card className="sticky top-24">
+              <CardContent className="p-6">
+                <div className="flex justify-between items-center mb-4">
+                  <h2 className="text-xl font-bold">Status</h2>
+                  <div className="bg-green-100 text-green-600 text-sm font-medium px-3 py-1 rounded-full">
+                    Available
+                  </div>
+                </div>
+                
+                <p className="text-gray-600 mb-6">
+                  This food donation is currently available for claiming.
+                </p>
+                
+                <Button 
+                  className="w-full mb-3 bg-green-500 hover:bg-green-600"
+                  onClick={handleClaim}
+                  disabled={!isCharity || claiming || !user}
+                >
+                  {claiming ? "Processing..." : "Claim Donation"}
+                </Button>
+                
+                {!user ? (
+                  <p className="text-sm text-center text-gray-500">
+                    Please <Link to="/signin" className="text-green-600 hover:underline">sign in</Link> to claim this donation.
+                  </p>
+                ) : !isCharity ? (
+                  <p className="text-sm text-center text-gray-500">
+                    Only charity organizations can claim donations.
+                  </p>
+                ) : null}
+              </CardContent>
+            </Card>
           </div>
         </div>
       </main>

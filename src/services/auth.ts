@@ -1,6 +1,6 @@
 
 import { supabase } from '@/lib/supabase';
-import { toast } from '@/components/ui/sonner';
+import { toast } from 'sonner';
 
 export type UserCredentials = {
   email: string;
@@ -20,26 +20,21 @@ export const signIn = async ({ email, password }: UserCredentials) => {
     });
     
     if (error) {
-      toast({
-        title: "Sign In Failed",
+      toast.error("Sign In Failed", {
         description: error.message,
-        variant: "destructive",
       });
       return { user: null, error: error.message };
     }
     
-    toast({
-      title: "Signed In",
+    toast.success("Signed In", {
       description: "Welcome back!",
     });
     
     return { user: data.user, error: null };
   } catch (error) {
     console.error('Sign in error:', error);
-    toast({
-      title: "Sign In Failed",
+    toast.error("Sign In Failed", {
       description: "An unexpected error occurred",
-      variant: "destructive",
     });
     return { user: null, error: "An unexpected error occurred" };
   }
@@ -60,26 +55,21 @@ export const signUp = async ({ email, password, name, userType }: UserRegistrati
     });
 
     if (error) {
-      toast({
-        title: "Registration Failed",
+      toast.error("Registration Failed", {
         description: error.message,
-        variant: "destructive",
       });
       return { user: null, error: error.message };
     }
     
-    toast({
-      title: "Registration Successful",
+    toast.success("Registration Successful", {
       description: "Welcome to Waste Not, Share!",
     });
     
     return { user: data.user, error: null };
   } catch (error) {
     console.error('Sign up error:', error);
-    toast({
-      title: "Registration Failed",
+    toast.error("Registration Failed", {
       description: "An unexpected error occurred",
-      variant: "destructive",
     });
     return { user: null, error: "An unexpected error occurred" };
   }
@@ -90,26 +80,21 @@ export const signOut = async () => {
     const { error } = await supabase.auth.signOut();
     
     if (error) {
-      toast({
-        title: "Sign Out Failed",
+      toast.error("Sign Out Failed", {
         description: error.message,
-        variant: "destructive",
       });
       return { error: error.message };
     }
     
-    toast({
-      title: "Signed Out",
+    toast.success("Signed Out", {
       description: "You have been signed out successfully",
     });
     
     return { error: null };
   } catch (error) {
     console.error('Sign out error:', error);
-    toast({
-      title: "Sign Out Failed",
+    toast.error("Sign Out Failed", {
       description: "An unexpected error occurred",
-      variant: "destructive",
     });
     return { error: "An unexpected error occurred" };
   }
